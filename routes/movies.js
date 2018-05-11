@@ -6,6 +6,11 @@ const movieRandomizer = require('../helpers/movierandomizer');
 const router = express.Router();
 
 router.post('/', (req, res, next) => {
+  if (!req.session.currentUser) {
+    res.status(401).json({ code: 'not-authorized' });
+    return;
+  }
+
   const voteAverageGte = req.body.rating || undefined;
   const language = req.body.language || undefined;
   const genre = req.body.genre || undefined;
