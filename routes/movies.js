@@ -1,30 +1,28 @@
 'use strict';
 
 const express = require('express');
+const movieRandomizer = require('../helpers/movierandomizer');
+
 const router = express.Router();
 
-const MovieDb = require('moviedb-promise');
-const moviedb = new MovieDb(process.env.MOVIEDB_API_KEY);
-
-/* GET home page. */
 router.post('/', (req, res, next) => {
   const voteAverageGte = req.body.rating || undefined;
-  const language = req.body.language;
-  const genre = req.body.genre;
+  const language = req.body.language || undefined;
+  const genre = req.body.genre || undefined;
   const releaseDate = req.body.date || undefined;
-
-  //   'release_date.gte': releaseDate,
+  const voteCounting = 100; // Mínimum votes
 
   const parameters = {
-    language: language,
+    'language': language,
     'release_date.gte': releaseDate,
     'vote_average.gte': voteAverageGte,
-    with_genres: genre
+    'with_genres': genre,
+    'vote_count.gte': voteCounting
   };
 
-  moviedb.discoverMovie(parameters)
-    .then((result) => {
-      res.json(result);
+  movieRandomizer(parameters)
+    .then(movies => {
+      res.json(movies);
     })
     .catch(console.error);
 });
