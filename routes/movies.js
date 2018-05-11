@@ -10,7 +10,7 @@ router.post('/', (req, res, next) => {
   const language = req.body.language || undefined;
   const genre = req.body.genre || undefined;
   const releaseDate = req.body.date || undefined;
-  const voteCounting = 100; // Mínimum votes
+  const voteCounting = 100; // Minimum votes
 
   const parameters = {
     'language': language,
