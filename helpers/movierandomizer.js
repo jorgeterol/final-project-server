@@ -11,11 +11,16 @@ const findMovies = function (parameters, limit, movies, iteration = 0) {
   return moviedb.discoverMovie(parameters)
     .then((result) => {
       const randomMovie = result.results[Math.floor(Math.random() * result.results.length)];
+      if (randomMovie === undefined) {
+        return movies;
+      }
       // @todo this might be a repeated movie
       movies.push(randomMovie);
       if (movies.length < limit) {
         const numberOfPages = result.total_pages;
-        parameters.page = Math.floor(Math.random() * numberOfPages);
+        if (numberOfPages > 1) {
+          parameters.page = Math.floor(Math.random() * numberOfPages) + 1;
+        }
         return findMovies(parameters, limit, movies, ++iteration);
       }
       return movies;

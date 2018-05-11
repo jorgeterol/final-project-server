@@ -12,9 +12,14 @@ router.post('/', (req, res, next) => {
   const releaseDate = req.body.date || undefined;
   const voteCounting = 100; // Minimum votes
 
+  if (releaseDate > 2018 || voteAverageGte > 10 || voteAverageGte < 0) {
+    res.status(400).json({code: 'invalid parameters for the search'});
+    return;
+  }
+
   const parameters = {
     'language': language,
-    'release_date.gte': releaseDate,
+    'primary_release_date.gte': releaseDate,
     'vote_average.gte': voteAverageGte,
     'with_genres': genre,
     'vote_count.gte': voteCounting
@@ -22,7 +27,7 @@ router.post('/', (req, res, next) => {
 
   movieRandomizer(parameters)
     .then(movies => {
-      res.json(movies);
+      res.status(200).json(movies);
     })
     .catch(console.error);
 });
