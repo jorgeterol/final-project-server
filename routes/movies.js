@@ -24,7 +24,7 @@ router.post('/', (req, res, next) => {
   const voteCounting = 100; // Minimum votes
 
   if (releaseDate > 2018 || voteAverageGte > 10 || voteAverageGte < 0) {
-    res.status(400).json({code: 'invalid parameters for the search'});
+    res.status(400).json({code: 'invalid-parameters'});
     return;
   }
 
@@ -46,14 +46,28 @@ router.post('/', (req, res, next) => {
 
 router.post('/save', (req, res, next) => {
   const userId = req.session.currentUser._id;
-  const movie = {
+  const newMovie = {
     movieID: req.body.id,
     title: req.body.title
   };
 
-  User.findByIdAndUpdate(userId, { $push: { movies: movie } })
+  let existingMovie = false;
+
+  User.findById(userId)
     .then((user) => {
-      res.status(200).json({code: 'nice'});
+      user.movies.find((movie) => {
+        if (movie.movieID === newMovie.movieID) {
+          existingMovie = true;
+          res.json({code: 'movie-exist'});
+        }
+      });
+      if (!existingMovie) {
+        User.findByIdAndUpdate(userId, { $push: { movies: newMovie } })
+          .then((user) => {
+            res.status(200).json({code: 'movie-added'});
+          })
+          .catch(next);
+      }
     })
     .catch(next);
 });
