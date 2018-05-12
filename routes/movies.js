@@ -48,33 +48,50 @@ router.post('/', (req, res, next) => {
 
 router.post('/save', (req, res, next) => {
   const userId = req.session.currentUser._id;
-  const newMovie = new Movie({
-    movieID: req.body.id,
-    title: req.body.title,
-    comments: []
-  });
+  const movieID = req.body.id;
+  const title = req.body.title;
 
-  newMovie.save()
-    .then(() => {
-      res.json({code: 'movie-created'});
-    })
-    .catch(next);
+  Movie.findOne({ 'movieID': movieID })
+    .then((movie) => {
+      if (!movie) {
+        const newMovie = new Movie({
+          movieID: movieID,
+          title: title,
+          comments: []
+        });
 
-  User.findById(userId)
-    .then((user) => {
-      const existingMovie = checkArrayOfMovies(user, newMovie);
-
-      if (existingMovie) {
-        res.json({code: 'movie-exists'});
-      }
-
-      if (!existingMovie) {
-        User.findByIdAndUpdate(userId, { $push: { movies: newMovie } })
-          .then((user) => {
-            res.status(200).json({code: 'movie-added'});
+        newMovie.save()
+          .then((movie) => {
+            User.findById(userId)
+              .then((user) => {
+                User.findByIdAndUpdate(userId, { $push: { movies: movie } })
+                  .then((user) => {
+                    res.status(200).json({ code: 'movie-added' });
+                  })
+                  .catch(next);
+              })
+              .catch(next);
           })
           .catch(next);
       }
+
+      User.findById(userId)
+        .then((user) => {
+          const existingMovie = checkArrayOfMovies(user, movieID);
+
+          if (existingMovie) {
+            res.json({ code: 'movie-exists' });
+          }
+
+          if (!existingMovie) {
+            User.findByIdAndUpdate(userId, { $push: { movies: movie } })
+              .then((user) => {
+                res.status(200).json({ code: 'movie-added' });
+              })
+              .catch(next);
+          }
+        })
+        .catch(next);
     })
     .catch(next);
 });
@@ -89,7 +106,11 @@ router.post('/comment', (req, res, next) => {
     comment: req.body.comment
   });
 
-  comment.save();
+  comment.save()
+    .then((comment) => {
+
+    })
+    .catch(next);
 
   Movie.findOne({'movieID': movieID})
     .then((movie) => {

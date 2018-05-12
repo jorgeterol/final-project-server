@@ -2,9 +2,9 @@
 
 let existingMovie = false;
 
-const checkArrayOfMovies = function (user, newMovie) {
+const checkArrayOfMovies = (user, movieID) => {
   user.movies.find((movie) => {
-    if (movie.movieID === newMovie.movieID) {
+    if (movie.movieID === movieID) {
       existingMovie = true;
     }
   });
