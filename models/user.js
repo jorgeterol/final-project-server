@@ -5,7 +5,11 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
   username: String,
-  password: String
+  password: String,
+  movies: [{
+    title: String,
+    movieID: Number
+  }]
 });
 
 const User = mongoose.model('User', userSchema);
