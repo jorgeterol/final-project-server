@@ -8,7 +8,8 @@ const userSchema = new Schema({
   password: String,
   movies: [{
     title: String,
-    movieID: Number
+    movieID: Number,
+    comment: String
   }]
 });
 

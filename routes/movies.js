@@ -5,6 +5,7 @@ const movieRandomizer = require('../helpers/movierandomizer');
 const checkArrayOfMovies = require('../helpers/checkarrayofmovies');
 const Movie = require('../models/movie');
 const User = require('../models/user');
+const Comment = require('../models/comment');
 
 const router = express.Router();
 
@@ -47,14 +48,25 @@ router.post('/', (req, res, next) => {
 
 router.post('/save', (req, res, next) => {
   const userId = req.session.currentUser._id;
-  const newMovie = {
+  const newMovie = new Movie({
     movieID: req.body.id,
-    title: req.body.title
-  };
+    title: req.body.title,
+    comments: []
+  });
+
+  newMovie.save()
+    .then(() => {
+      res.json({code: 'movie-created'});
+    })
+    .catch(next);
 
   User.findById(userId)
     .then((user) => {
       const existingMovie = checkArrayOfMovies(user, newMovie);
+
+      if (existingMovie) {
+        res.json({code: 'movie-exists'});
+      }
 
       if (!existingMovie) {
         User.findByIdAndUpdate(userId, { $push: { movies: newMovie } })
@@ -63,6 +75,44 @@ router.post('/save', (req, res, next) => {
           })
           .catch(next);
       }
+    })
+    .catch(next);
+});
+
+router.post('/comment', (req, res, next) => {
+  const userId = req.session.currentUser._id;
+  const movieID = req.body.movie.id;
+
+  const comment = new Comment({
+    movieID: movieID,
+    username: userId,
+    comment: req.body.comment
+  });
+
+  comment.save();
+
+  Movie.findOne({'movieID': movieID})
+    .then((movie) => {
+      if (!movie) {
+        const newMovie = new Movie({
+          movieID: req.body.movie.id,
+          title: req.body.movie.title,
+          comments: [comment]
+        });
+
+        newMovie.save()
+          .then(() => {
+            res.json({ code: 'movie-and-comment-created' });
+          })
+          .catch(next);
+        return;
+      }
+      movie.comments.push(comment);
+      movie.save()
+        .then(() => {
+          res.json({ code: 'comment-added' });
+        })
+        .catch(next);
     })
     .catch(next);
 });
