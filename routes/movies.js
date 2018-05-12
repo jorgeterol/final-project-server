@@ -2,6 +2,7 @@
 
 const express = require('express');
 const movieRandomizer = require('../helpers/movierandomizer');
+const checkArrayOfMovies = require('../helpers/checkarrayofmovies');
 const Movie = require('../models/movie');
 const User = require('../models/user');
 
@@ -51,16 +52,10 @@ router.post('/save', (req, res, next) => {
     title: req.body.title
   };
 
-  let existingMovie = false;
-
   User.findById(userId)
     .then((user) => {
-      user.movies.find((movie) => {
-        if (movie.movieID === newMovie.movieID) {
-          existingMovie = true;
-          res.json({code: 'movie-exist'});
-        }
-      });
+      const existingMovie = checkArrayOfMovies(user, newMovie);
+
       if (!existingMovie) {
         User.findByIdAndUpdate(userId, { $push: { movies: newMovie } })
           .then((user) => {
