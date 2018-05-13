@@ -5,13 +5,13 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
 const commentSchema = new Schema({
-  movieID: {
+  username: {
+    type: ObjectId,
+    ref: 'User'
+  },
+  movie: {
     type: ObjectId,
     ref: 'Movie'
-  },
-  username: {
-    type: String,
-    ref: 'User'
   },
   comment: {
     type: String

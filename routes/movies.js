@@ -56,42 +56,35 @@ router.post('/save', (req, res, next) => {
       if (!movie) {
         const newMovie = new Movie({
           movieID: movieID,
-          title: title,
-          comments: []
+          title: title
         });
 
-        newMovie.save()
-          .then((movie) => {
-            User.findById(userId)
-              .then((user) => {
-                User.findByIdAndUpdate(userId, { $push: { movies: movie } })
-                  .then((user) => {
-                    res.status(200).json({ code: 'movie-added' });
-                  })
-                  .catch(next);
-              })
-              .catch(next);
+        newMovie.save();
+
+        User.findByIdAndUpdate(userId, { $push: { movies: newMovie } })
+          .then(() => {
+            res.json('ok');
+          })
+          .catch(next);
+      } else {
+        User.findById(userId)
+          .then((user) => {
+            const existingMovie = checkArrayOfMovies(user, movieID);
+
+            if (existingMovie) {
+              res.json({ code: 'movie-exists' });
+            }
+
+            if (!existingMovie) {
+              User.findByIdAndUpdate(userId, { $push: { movies: movie } })
+                .then((user) => {
+                  res.status(200).json({ code: 'movie-added' });
+                })
+                .catch(next);
+            }
           })
           .catch(next);
       }
-
-      User.findById(userId)
-        .then((user) => {
-          const existingMovie = checkArrayOfMovies(user, movieID);
-
-          if (existingMovie) {
-            res.json({ code: 'movie-exists' });
-          }
-
-          if (!existingMovie) {
-            User.findByIdAndUpdate(userId, { $push: { movies: movie } })
-              .then((user) => {
-                res.status(200).json({ code: 'movie-added' });
-              })
-              .catch(next);
-          }
-        })
-        .catch(next);
     })
     .catch(next);
 });
@@ -99,41 +92,60 @@ router.post('/save', (req, res, next) => {
 router.post('/comment', (req, res, next) => {
   const userId = req.session.currentUser._id;
   const movieID = req.body.movie.id;
+  const title = req.body.movie.title;
 
   const comment = new Comment({
-    movieID: movieID,
     username: userId,
     comment: req.body.comment
   });
 
-  comment.save()
-    .then((comment) => {
-
-    })
-    .catch(next);
-
-  Movie.findOne({'movieID': movieID})
+  Movie.findOne({ 'movieID': movieID })
     .then((movie) => {
       if (!movie) {
         const newMovie = new Movie({
-          movieID: req.body.movie.id,
-          title: req.body.movie.title,
-          comments: [comment]
+          movieID: movieID,
+          title: title,
+          comments: []
         });
+
+        comment.movie = newMovie.id;
+
+        newMovie.comments.push(comment);
+
+        User.findByIdAndUpdate(userId, { $push: { comments: comment } })
+          .then((user) => {
+            res.status(200).json({ code: 'comment-added' });
+          })
+          .catch(next);
 
         newMovie.save()
           .then(() => {
-            res.json({ code: 'movie-and-comment-created' });
+            res.json({code: 'movie-added'});
+          });
+        comment.save()
+          .then(() => {
+            res.json({ code: 'comment-added' });
+          });
+      } else {
+        comment.movie = movie.id;
+
+        movie.comments.push(comment);
+
+        User.findByIdAndUpdate(userId, { $push: { comments: comment } })
+          .then((user) => {
+            res.status(200).json({ code: 'comment-added' });
           })
           .catch(next);
-        return;
+
+        movie.save()
+          .then(() => {
+            res.json({ code: 'movie-modified' });
+          });
+        comment.save()
+          .then(() => {
+            res.json({ code: 'comment-added' });
+          });
       }
-      movie.comments.push(comment);
-      movie.save()
-        .then(() => {
-          res.json({ code: 'comment-added' });
-        })
-        .catch(next);
     })
     .catch(next);
 });
