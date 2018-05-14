@@ -2,7 +2,6 @@
 
 const express = require('express');
 const movieRandomizer = require('../helpers/movierandomizer');
-const checkArrayOfMovies = require('../helpers/checkarrayofmovies');
 const Movie = require('../models/movie');
 const User = require('../models/user');
 const Comment = require('../models/comment');
@@ -40,8 +39,8 @@ router.post('/', (req, res, next) => {
   };
 
   movieRandomizer(parameters)
-    .then(movies => {
-      res.status(200).json(movies);
+    .then((movies) => {
+      res.json(movies);
     })
     .catch(console.error);
 });
@@ -54,38 +53,18 @@ router.post('/save', (req, res, next) => {
   Movie.findOne({ 'movieID': movieID })
     .then((movie) => {
       if (!movie) {
-        const newMovie = new Movie({
+        movie = new Movie({
           movieID: movieID,
           title: title
         });
-
-        newMovie.save();
-
-        User.findByIdAndUpdate(userId, { $push: { movies: newMovie } })
-          .then(() => {
-            res.status(200).json({code: 'movie-added'});
-          })
-          .catch(next);
-      } else {
-        User.findById(userId)
-          .then((user) => {
-            const existingMovie = checkArrayOfMovies(user, movieID);
-
-            if (existingMovie) {
-              res.json({ code: 'movie-exists' });
-              return;
-            }
-
-            if (!existingMovie) {
-              User.findByIdAndUpdate(userId, { $push: { movies: movie } })
-                .then((user) => {
-                  res.status(200).json({ code: 'movie-added' });
-                })
-                .catch(next);
-            }
-          })
-          .catch(next);
       }
+      return User.findByIdAndUpdate(userId, { $push: { movies: movie } });
+    })
+    .then((movie) => {
+      return movie.save();
+    })
+    .then(() => {
+      res.json({code: 'movie-saved'});
     })
     .catch(next);
 });
