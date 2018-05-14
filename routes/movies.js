@@ -63,7 +63,7 @@ router.post('/save', (req, res, next) => {
 
         User.findByIdAndUpdate(userId, { $push: { movies: newMovie } })
           .then(() => {
-            res.json('ok');
+            res.status(200).json({code: 'movie-added'});
           })
           .catch(next);
       } else {
@@ -73,6 +73,7 @@ router.post('/save', (req, res, next) => {
 
             if (existingMovie) {
               res.json({ code: 'movie-exists' });
+              return;
             }
 
             if (!existingMovie) {
@@ -102,50 +103,46 @@ router.post('/comment', (req, res, next) => {
   Movie.findOne({ 'movieID': movieID })
     .then((movie) => {
       if (!movie) {
-        const newMovie = new Movie({
+        movie = new Movie({
           movieID: movieID,
           title: title,
           comments: []
         });
-
-        comment.movie = newMovie.id;
-
-        newMovie.comments.push(comment);
-
-        User.findByIdAndUpdate(userId, { $push: { comments: comment } })
-          .then((user) => {
-            res.status(200).json({ code: 'comment-added' });
-          })
-          .catch(next);
-
-        newMovie.save()
-          .then(() => {
-            res.json({code: 'movie-added'});
-          });
-        comment.save()
-          .then(() => {
-            res.json({ code: 'comment-added' });
-          });
-      } else {
-        comment.movie = movie.id;
-
-        movie.comments.push(comment);
-
-        User.findByIdAndUpdate(userId, { $push: { comments: comment } })
-          .then((user) => {
-            res.status(200).json({ code: 'comment-added' });
-          })
-          .catch(next);
-
-        movie.save()
-          .then(() => {
-            res.json({ code: 'movie-modified' });
-          });
-        comment.save()
-          .then(() => {
-            res.json({ code: 'comment-added' });
-          });
       }
+
+      comment.movie = movie.id;
+
+      movie.comments.push(comment);
+
+      return movie.save();
+    })
+    .then(() => {
+      return comment.save();
+    })
+    .then(() => {
+      return User.findByIdAndUpdate(userId, { $push: { comments: comment } });
+    })
+    .then(() => {
+      return Comment.findById(comment._id).populate('username');
+    })
+    .then((result) => {
+      res.json(result);
+    })
+    .catch(next);
+});
+
+router.post('/show', (req, res, next) => {
+  const userId = req.session.currentUser._id;
+  const movieID = req.body.id;
+
+  Movie.findOne({ 'movieID': movieID })
+    .populate('comments.username')
+    .then((movie) => {
+      if (!movie) {
+        res.json([]);
+        return;
+      }
+      res.json(movie.comments);
     })
     .catch(next);
 });
