@@ -14,6 +14,7 @@ router.post('/', (req, res, next) => {
     return;
   }
 
+  const userId = req.session.currentUser._id;
   const voteAverageGte = req.body.rating || undefined;
   const language = req.body.language || undefined;
   let originalLanguage;
@@ -38,7 +39,7 @@ router.post('/', (req, res, next) => {
     'vote_count.gte': voteCounting
   };
 
-  movieRandomizer(parameters)
+  movieRandomizer(parameters, userId)
     .then((movies) => {
       res.json(movies);
     })
