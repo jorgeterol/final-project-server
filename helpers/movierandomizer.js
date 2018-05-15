@@ -12,7 +12,7 @@ const findMovies = function (parameters, userId, limit, movies, iteration = 0, s
     .then((result) => {
       let movieInArray = false;
       if (result.total_results > 0 && result.total_results <= 3) {
-        for (let ix = 0; ix <= result.total_results; ix++) {
+        for (let ix = 0; ix <= result.total_results - 1; ix++) {
           movies.push(result.results[ix]);
         }
         return movies;
