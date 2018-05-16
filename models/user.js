@@ -14,16 +14,12 @@ const userSchema = new Schema({
     required: true
   },
   movies: [{
-    _id: {
-      type: ObjectId,
-      ref: 'Movie'
-    },
-    movieID: {
-      type: Number
-    },
-    title: {
-      type: String
-    }
+    type: ObjectId,
+    ref: 'Movie'
+  }],
+  shows: [{
+    type: ObjectId,
+    ref: 'Show'
   }],
   comments: [{
     comment: {
@@ -33,6 +29,10 @@ const userSchema = new Schema({
     movie: {
       type: ObjectId,
       ref: 'Movie'
+    },
+    show: {
+      type: ObjectId,
+      ref: 'Show'
     }
   }]
 

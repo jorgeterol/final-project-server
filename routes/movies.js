@@ -47,6 +47,10 @@ router.post('/', (req, res, next) => {
 });
 
 router.post('/save', (req, res, next) => {
+  if (!req.session.currentUser) {
+    res.status(401).json({ code: 'not-authorized' });
+    return;
+  }
   const userId = req.session.currentUser._id;
   const movieID = req.body.id;
   const title = req.body.title;
@@ -59,10 +63,10 @@ router.post('/save', (req, res, next) => {
           title: title
         });
       }
-      return User.findByIdAndUpdate(userId, { $push: { movies: movie } });
+      return movie.save();
     })
     .then((movie) => {
-      return movie.save();
+      return User.findByIdAndUpdate(userId, { $push: { movies: movie._id } });
     })
     .then(() => {
       res.json({code: 'movie-saved'});
@@ -71,6 +75,10 @@ router.post('/save', (req, res, next) => {
 });
 
 router.post('/comment', (req, res, next) => {
+  if (!req.session.currentUser) {
+    res.status(401).json({ code: 'not-authorized' });
+    return;
+  }
   const userId = req.session.currentUser._id;
   const movieID = req.body.movie.id;
   const title = req.body.movie.title;
@@ -112,7 +120,10 @@ router.post('/comment', (req, res, next) => {
 });
 
 router.post('/show', (req, res, next) => {
-  const userId = req.session.currentUser._id;
+  if (!req.session.currentUser) {
+    res.status(401).json({ code: 'not-authorized' });
+    return;
+  }
   const movieID = req.body.id;
 
   Movie.findOne({ 'movieID': movieID })

@@ -14,6 +14,18 @@ router.get('/me', (req, res, next) => {
   }
 });
 
+router.get('/me/details', (req, res, next) => {
+  if (!req.session.currentUser) {
+    res.status(404).json({ code: 'not-found' });
+  } else {
+    User.findOne({ _id: req.session.currentUser._id })
+      .populate('movies', 'movieID title')
+      .populate('shows', 'showID name')
+      .then(user => res.json(user))
+      .catch(next);
+  }
+});
+
 router.post('/login', (req, res, next) => {
   if (req.session.currentUser) {
     return res.status(401).json({ code: 'unauthorized' });

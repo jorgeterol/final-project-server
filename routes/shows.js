@@ -47,22 +47,26 @@ router.post('/', (req, res, next) => {
 });
 
 router.post('/save', (req, res, next) => {
+  if (!req.session.currentUser) {
+    res.status(401).json({ code: 'not-authorized' });
+    return;
+  }
   const userId = req.session.currentUser._id;
   const showID = req.body.id;
-  const title = req.body.title;
+  const name = req.body.name;
 
   Show.findOne({ 'showID': showID })
     .then((show) => {
       if (!show) {
         show = new Show({
           showID: showID,
-          title: title
+          name: name
         });
       }
-      return User.findByIdAndUpdate(userId, { $push: { shows: show } });
+      return show.save();
     })
     .then((show) => {
-      return show.save();
+      return User.findByIdAndUpdate(userId, { $push: { shows: show._id } });
     })
     .then(() => {
       res.json({ code: 'show-saved' });
@@ -71,9 +75,13 @@ router.post('/save', (req, res, next) => {
 });
 
 router.post('/comment', (req, res, next) => {
+  if (!req.session.currentUser) {
+    res.status(401).json({ code: 'not-authorized' });
+    return;
+  }
   const userId = req.session.currentUser._id;
   const showID = req.body.show.id;
-  const title = req.body.show.title;
+  const name = req.body.show.name;
 
   const comment = new Comment({
     username: userId,
@@ -85,7 +93,7 @@ router.post('/comment', (req, res, next) => {
       if (!show) {
         show = new Show({
           showID: showID,
-          title: title,
+          name: name,
           comments: []
         });
       }
@@ -112,7 +120,10 @@ router.post('/comment', (req, res, next) => {
 });
 
 router.post('/show', (req, res, next) => {
-  const userId = req.session.currentUser._id;
+  if (!req.session.currentUser) {
+    res.status(401).json({ code: 'not-authorized' });
+    return;
+  }
   const showID = req.body.id;
 
   Show.findOne({ 'showID': showID })

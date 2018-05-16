@@ -13,6 +13,10 @@ const commentSchema = new Schema({
     type: ObjectId,
     ref: 'Movie'
   },
+  show: {
+    type: ObjectId,
+    ref: 'Show'
+  },
   comment: {
     type: String
   }

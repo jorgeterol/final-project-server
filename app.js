@@ -20,7 +20,7 @@ const app = express();
 // --- Database
 
 mongoose.Promise = Promise;
-mongoose.connect('mongodb://localhost/random-selector', {
+mongoose.connect(process.env.MONGODB_URI, {
   keepAlive: true,
   reconnectTries: Number.MAX_VALUE
 });
@@ -29,7 +29,7 @@ mongoose.connect('mongodb://localhost/random-selector', {
 
 app.use(cors({
   credentials: true,
-  origin: ['http://localhost:4200']
+  origin: [process.env.CLIENT_URL]
 }));
 
 app.use(session({

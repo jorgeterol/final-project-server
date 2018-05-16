@@ -8,7 +8,7 @@ const showSchema = new Schema({
   showID: {
     type: Number
   },
-  title: {
+  name: {
     type: String
   },
   comments: [{
