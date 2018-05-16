@@ -55,6 +55,7 @@ router.post('/save', (req, res, next) => {
   const movieID = req.body.id;
   const title = req.body.title;
   const poster = req.body.poster_path;
+  let exists = false;
 
   Movie.findOne({ 'movieID': movieID })
     .then((movie) => {
@@ -68,10 +69,27 @@ router.post('/save', (req, res, next) => {
       return movie.save();
     })
     .then((movie) => {
-      return User.findByIdAndUpdate(userId, { $push: { movies: movie._id } });
+      return User.findById(userId)
+        .populate('movies')
+        .then((user) => {
+          user.movies.find((movieInUser) => {
+            if (movieInUser.movieID === movie.movieID) {
+              exists = true;
+            }
+          });
+          if (exists) {
+            return;
+          }
+          user.movies.push(movie);
+          return user.save();
+        });
     })
     .then(() => {
-      res.json({code: 'movie-saved'});
+      if (!exists) {
+        res.json({code: 'movie-saved'});
+      } else {
+        res.json({code: 'movie exists'});
+      }
     })
     .catch(next);
 });

@@ -55,6 +55,7 @@ router.post('/save', (req, res, next) => {
   const showID = req.body.id;
   const name = req.body.name;
   const poster = req.body.poster_path;
+  let exists = false;
 
   Show.findOne({ 'showID': showID })
     .then((show) => {
@@ -68,10 +69,27 @@ router.post('/save', (req, res, next) => {
       return show.save();
     })
     .then((show) => {
-      return User.findByIdAndUpdate(userId, { $push: { shows: show._id } });
+      return User.findById(userId)
+        .populate('shows')
+        .then((user) => {
+          user.shows.find((showInUser) => {
+            if (showInUser.showID === show.showID) {
+              exists = true;
+            }
+          });
+          if (exists) {
+            return;
+          }
+          user.shows.push(show);
+          return user.save();
+        });
     })
     .then(() => {
-      res.json({ code: 'show-saved' });
+      if (!exists) {
+        res.json({ code: 'show-saved' });
+      } else {
+        res.json({ code: 'show exists' });
+      }
     })
     .catch(next);
 });

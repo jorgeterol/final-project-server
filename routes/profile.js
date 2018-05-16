@@ -6,6 +6,10 @@ const User = require('../models/user');
 
 /* GET home page. */
 router.get('/:username', (req, res, next) => {
+  if (!req.session.currentUser) {
+    res.status(401).json({ code: 'not-authorized' });
+    return;
+  }
   const username = req.params.username;
 
   User.findOne({'username': username})
