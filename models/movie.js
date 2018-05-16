@@ -11,6 +11,9 @@ const movieSchema = new Schema({
   title: {
     type: String
   },
+  poster: {
+    type: String
+  },
   comments: [{
     username: {
       type: ObjectId,

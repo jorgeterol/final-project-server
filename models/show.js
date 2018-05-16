@@ -11,6 +11,9 @@ const showSchema = new Schema({
   name: {
     type: String
   },
+  poster: {
+    type: String
+  },
   comments: [{
     username: {
       type: ObjectId,

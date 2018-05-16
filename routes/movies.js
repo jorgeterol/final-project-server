@@ -54,13 +54,15 @@ router.post('/save', (req, res, next) => {
   const userId = req.session.currentUser._id;
   const movieID = req.body.id;
   const title = req.body.title;
+  const poster = req.body.poster_path;
 
   Movie.findOne({ 'movieID': movieID })
     .then((movie) => {
       if (!movie) {
         movie = new Movie({
           movieID: movieID,
-          title: title
+          title: title,
+          poster: poster
         });
       }
       return movie.save();
@@ -82,6 +84,7 @@ router.post('/comment', (req, res, next) => {
   const userId = req.session.currentUser._id;
   const movieID = req.body.movie.id;
   const title = req.body.movie.title;
+  const poster = req.body.movie.poster_path;
 
   const comment = new Comment({
     username: userId,
@@ -94,7 +97,7 @@ router.post('/comment', (req, res, next) => {
         movie = new Movie({
           movieID: movieID,
           title: title,
-          comments: []
+          poster: poster
         });
       }
 

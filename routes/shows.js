@@ -54,13 +54,15 @@ router.post('/save', (req, res, next) => {
   const userId = req.session.currentUser._id;
   const showID = req.body.id;
   const name = req.body.name;
+  const poster = req.body.poster_path;
 
   Show.findOne({ 'showID': showID })
     .then((show) => {
       if (!show) {
         show = new Show({
           showID: showID,
-          name: name
+          name: name,
+          poster: poster
         });
       }
       return show.save();
@@ -82,6 +84,7 @@ router.post('/comment', (req, res, next) => {
   const userId = req.session.currentUser._id;
   const showID = req.body.show.id;
   const name = req.body.show.name;
+  const poster = req.body.show.poster_path;
 
   const comment = new Comment({
     username: userId,
@@ -94,7 +97,7 @@ router.post('/comment', (req, res, next) => {
         show = new Show({
           showID: showID,
           name: name,
-          comments: []
+          poster: poster
         });
       }
 
