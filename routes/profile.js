@@ -11,6 +11,9 @@ router.get('/:username', (req, res, next) => {
   User.findOne({'username': username})
     .populate('movies')
     .populate('shows')
+    .populate('comments')
+    .populate('comments.movie')
+    .populate('comments.show')
     .then((user) => {
       res.json(user);
     })
