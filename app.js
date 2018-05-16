@@ -14,6 +14,7 @@ const auth = require('./routes/auth');
 const movies = require('./routes/movies');
 const shows = require('./routes/shows');
 const torrent = require('./routes/torrent');
+const profile = require('./routes/profile');
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use('/auth', auth);
 app.use('/movies', movies);
 app.use('/torrent', torrent);
 app.use('/shows', shows);
+app.use('/profile', profile);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
