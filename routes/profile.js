@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const User = require('../models/user');
+const Movie = require('../models/movie');
 const Comment = require('../models/comment');
 
 /* GET profile page. */
@@ -35,16 +36,25 @@ router.delete('/:id', (req, res, next) => {
   }
 
   const userId = req.session.currentUser._id;
+  const commentId = req.params.id;
 
-  Comment.findByIdAndRemove(req.params.id)
+  Comment.findById(commentId)
+    .populate('movie', 'movie._id')
+    .populate('show', 'show._id')
     .then((comment) => {
       if (!comment) {
         res.json({code: 'comment-not-found'});
         return;
       }
-      comment.remove()
-        .then((comment) => {
-          res.json(comment);
+      User.findByIdAndUpdate(userId, { $pull: { comments: comment } })
+        .then(() => {
+          Movie.findByIdAndUpdate(comment.movie.id, { $pull: { comments: comment } })
+            .then(() => {
+              comment.remove()
+                .then(() => {
+                  res.json(comment);
+                });
+            });
         })
         .catch(next);
     })
