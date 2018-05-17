@@ -5,6 +5,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const User = require('../models/user');
 const Movie = require('../models/movie');
+const Show = require('../models/show');
 const Comment = require('../models/comment');
 
 /* GET profile page. */
@@ -48,17 +49,19 @@ router.delete('/:id', (req, res, next) => {
       }
       User.findByIdAndUpdate(userId, { $pull: { comments: comment } })
         .then(() => {
-          Movie.findByIdAndUpdate(comment.movie.id, { $pull: { comments: comment } })
-            .then(() => {
-              comment.remove()
-                .then(() => {
-                  res.json(comment);
-                });
-            });
+          if (comment.movie) {
+            return Movie.findByIdAndUpdate(comment.movie.id, { $pull: { comments: comment } });
+          }
+          return Show.findByIdAndUpdate(comment.show.id, { $pull: { comments: comment } });
+        })
+        .then(() => {
+          return comment.remove();
+        })
+        .then(() => {
+          res.json(comment);
         })
         .catch(next);
-    })
-    .catch(next);
+    });
 });
 
 module.exports = router;
